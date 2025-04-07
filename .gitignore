@@ -1,0 +1,38 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment directories
+.venv/
+env/
+venv/
+
+# Ignore SQLite database files
+db.sqlite3
+db.sqlite3-journal
+
+# Ignore IDE configuration files
+.idea/
+
+# Ignore log files and cache
+*.log
+*.pot
+.DS_Store
+*.swp
+*.swo
+
+# Ignore automatically generated static and media files
+staticfiles/
+media/
+
+# Ignore environment variable files
+.env
+*.env
+
+# Ignore migration files that should not be committed
+migrations/
+
+# Ignore Docker-related files
+docker-compose.override.yml
