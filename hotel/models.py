@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 class Amenity(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
@@ -18,11 +18,17 @@ class Hotel(models.Model):
     def __str__(self):
         return f"{self.name} ({self.location})"
 
+class RoomType(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
 
 class Room(models.Model):
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='rooms')
     room_number = models.IntegerField()
-    room_type = models.CharField(max_length=255)
+    room_type = models.ForeignKey(RoomType, on_delete=models.CASCADE, related_name='rooms')
     price_per_night = models.DecimalField(max_digits=7, decimal_places=2)
     is_available = models.BooleanField(default=True)
     amenities = models.ManyToManyField(Amenity, related_name='rooms', blank=True)

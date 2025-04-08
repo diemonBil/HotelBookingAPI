@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
-from .models import Hotel, Room, Amenity, Booking, Payment, Review
+from .models import Hotel, Room, Amenity, Booking, Payment, Review, RoomType
+
 
 class AmenitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,10 +14,19 @@ class HotelSerializer(serializers.ModelSerializer):
         model = Hotel
         fields = '__all__'
 
-
 class RoomSerializer(serializers.ModelSerializer):
-    hotel = HotelSerializer(read_only=True)
-    amenities = AmenitySerializer(many=True, read_only=True)
+    hotel = serializers.SlugRelatedField(
+        queryset=Hotel.objects.all(),
+        slug_field='name'
+    )
+    amenities = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Amenity.objects.all()
+    )
+    room_type = serializers.SlugRelatedField(
+        queryset=RoomType.objects.all(),
+        slug_field='name'
+    )
 
     class Meta:
         model = Room
