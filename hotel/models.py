@@ -43,7 +43,7 @@ class Room(models.Model):
 
 class Booking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='bookings')
+    rooms = models.ManyToManyField(Room, related_name='bookings')
     check_in = models.DateTimeField()
     check_out = models.DateTimeField()
     adults = models.IntegerField()

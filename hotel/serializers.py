@@ -38,9 +38,28 @@ class RoomTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class BookingSerializer(serializers.ModelSerializer):
+    rooms = serializers.PrimaryKeyRelatedField(
+        queryset=Room.objects.all(),
+        many=True
+    )
     class Meta:
         model = Booking
         fields = '__all__'
+
+    def validate(self, data):
+        adults = data.get('adults', 0)
+        children = data.get('children', 0)
+        rooms = data.get('rooms', [])
+        total_guests = adults + children
+
+        total_capacity = sum(room.max_guests for room in rooms)
+
+        if total_guests > total_capacity:
+            raise serializers.ValidationError(
+                f"Total guests ({total_guests}) exceed room capacity ({total_capacity})."
+            )
+
+        return data
 
 
 class PaymentSerializer(serializers.ModelSerializer):
