@@ -2,12 +2,13 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from hotel.views import (
     HotelViewSet, RoomViewSet, AmenityViewSet,
-    BookingViewSet, PaymentViewSet, ReviewViewSet
+    BookingViewSet, PaymentViewSet, ReviewViewSet, RoomTypeViewSet
 )
 
 router = DefaultRouter()
 router.register(r'hotels', HotelViewSet)
 router.register(r'rooms', RoomViewSet)
+router.register(r'room-types', RoomTypeViewSet)
 router.register(r'amenities', AmenityViewSet)
 router.register(r'bookings', BookingViewSet)
 router.register(r'payments', PaymentViewSet)

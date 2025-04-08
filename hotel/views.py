@@ -1,8 +1,8 @@
 from rest_framework import viewsets
-from .models import Hotel, Room, Amenity, Booking, Payment, Review
+from .models import Hotel, Room, Amenity, Booking, Payment, Review, RoomType
 from .serializers import (
     HotelSerializer, RoomSerializer, AmenitySerializer,
-    BookingSerializer, PaymentSerializer, ReviewSerializer
+    BookingSerializer, PaymentSerializer, ReviewSerializer, RoomTypeSerializer
 )
 
 class HotelViewSet(viewsets.ModelViewSet):
@@ -12,6 +12,10 @@ class HotelViewSet(viewsets.ModelViewSet):
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
+
+class RoomTypeViewSet(viewsets.ModelViewSet):
+    queryset = RoomType.objects.all()
+    serializer_class = RoomTypeSerializer
 
 class AmenityViewSet(viewsets.ModelViewSet):
     queryset = Amenity.objects.all()
