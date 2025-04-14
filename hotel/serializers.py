@@ -38,28 +38,86 @@ class RoomTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class BookingSerializer(serializers.ModelSerializer):
-    rooms = serializers.PrimaryKeyRelatedField(
-        queryset=Room.objects.all(),
-        many=True
+    room_type = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=RoomType.objects.all(),
+        write_only = True
     )
+    rooms = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = [
+            'user', 'room_type', 'check_in', 'check_out',
+            'adults', 'children', 'rooms'
+        ]
+
+    def get_rooms(self, obj):
+        return [
+            {
+                "id": room.id,
+                "room_number": room.room_number,
+                "hotel": room.hotel.name
+            }
+            for room in obj.rooms.all()
+        ]
 
     def validate(self, data):
-        adults = data.get('adults', 0)
-        children = data.get('children', 0)
-        rooms = data.get('rooms', [])
+        check_in = data['check_in']
+        check_out = data['check_out']
+        room_type = data['room_type']
+        adults = data['adults']
+        children = data['children']
         total_guests = adults + children
 
-        total_capacity = sum(room.max_guests for room in rooms)
+        # Find all rooms of the selected type that can fit the guest count
+        possible_rooms = Room.objects.filter(
+            room_type=room_type,
+            max_guests__gte=total_guests,
+            is_available=True
+        )
 
-        if total_guests > total_capacity:
+        # Check for each room if it is available in the selected date range
+        available_room = None
+        for room in possible_rooms:
+            overlapping = Booking.objects.filter(
+                rooms=room,
+                check_in__lt=check_out,
+                check_out__gt=check_in
+            )
+            if not overlapping.exists():
+                available_room = room
+                break
+
+        if not available_room:
             raise serializers.ValidationError(
-                f"Total guests ({total_guests}) exceed room capacity ({total_capacity})."
+                f"No available rooms of type '{room_type.name}' for the selected dates and guest count."
             )
 
+        # Pass the selected available room to use in the create() method
+        self.available_room = available_room
         return data
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        check_in = validated_data['check_in']
+        check_out = validated_data['check_out']
+        adults = validated_data['adults']
+        children = validated_data['children']
+
+        # Create booking without specifying rooms yet
+        booking = Booking.objects.create(
+            user=user,
+            check_in=check_in,
+            check_out=check_out,
+            adults=adults,
+            children=children
+        )
+
+        # Add the available room found in validate()
+        booking.rooms.add(self.available_room)
+        return booking
+
 
 
 class PaymentSerializer(serializers.ModelSerializer):
