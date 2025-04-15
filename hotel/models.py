@@ -50,7 +50,7 @@ class Booking(models.Model):
     children = models.IntegerField()
 
     def __str__(self):
-        return f"Booking by {self.user.username} in {self.room}"
+        return f"Booking by {self.user.username} in {self.rooms}"
 
 
 class Payment(models.Model):

@@ -1,3 +1,4 @@
+from django.utils.timezone import make_aware
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -51,9 +52,8 @@ def available_room_types(request):
     if not check_in or not check_out or not hotel_id:
         return Response({'error': 'Missing hotel, check_in or check_out'}, status=400)
 
-    # Convert string dates to datetime
-    check_in = datetime.fromisoformat(check_in)
-    check_out = datetime.fromisoformat(check_out)
+    check_in = make_aware(datetime.fromisoformat(check_in))
+    check_out = make_aware(datetime.fromisoformat(check_out))
 
     # Check if the hotel exists
     try:

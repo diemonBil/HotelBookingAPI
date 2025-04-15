@@ -1,5 +1,7 @@
+from django.utils import timezone
 from rest_framework import serializers
 from django.conf import settings
+from django.utils.timezone import now
 from .models import Hotel, Room, Amenity, Booking, Payment, Review, RoomType
 
 
@@ -77,6 +79,14 @@ class BookingSerializer(serializers.ModelSerializer):
             is_available=True
         )
 
+        # Disallow booking for past dates
+        if check_in < now():
+            raise serializers.ValidationError("Check-in date cannot be in the past.")
+
+        # Ensure check-out is after check-in
+        if check_out <= check_in:
+            raise serializers.ValidationError("Check-out must be after check-in.")
+
         # Check for each room if it is available in the selected date range
         available_room = None
         for room in possible_rooms:
@@ -105,7 +115,7 @@ class BookingSerializer(serializers.ModelSerializer):
         adults = validated_data['adults']
         children = validated_data['children']
 
-        # Create booking without specifying rooms yet
+        # Create booking
         booking = Booking.objects.create(
             user=user,
             check_in=check_in,
@@ -114,8 +124,23 @@ class BookingSerializer(serializers.ModelSerializer):
             children=children
         )
 
-        # Add the available room found in validate()
+        # Add room(s) from validation phase (self.available_room or similar)
         booking.rooms.add(self.available_room)
+
+        # Calculate nights
+        nights = (check_out - check_in).days
+
+        # Total price = sum of all room prices * nights
+        total_price = sum(room.price_per_night for room in booking.rooms.all()) * nights
+
+        # Create related payment object
+        Payment.objects.create(
+            booking=booking,
+            amount=total_price,
+            status='pending',
+            payment_date=timezone.now()
+        )
+
         return booking
 
 
