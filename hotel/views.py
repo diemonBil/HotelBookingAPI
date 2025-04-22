@@ -1,13 +1,15 @@
 from django.utils.timezone import make_aware
 from rest_framework import viewsets, generics
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers import JSONRenderer
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from datetime import datetime
 
-from rest_framework.settings import api_settings
+
+
+class IsStaff(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_staff
 
 from .models import Hotel, Room, Amenity, Booking, Payment, Review, RoomType
 from .serializers import (
@@ -18,34 +20,41 @@ from .serializers import (
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
+    permission_classes = [IsStaff]
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
+    permission_classes = [IsStaff]
 
 class RoomTypeViewSet(viewsets.ModelViewSet):
     queryset = RoomType.objects.all()
     serializer_class = RoomTypeSerializer
+    permission_classes = [IsStaff]
 
 class AmenityViewSet(viewsets.ModelViewSet):
     queryset = Amenity.objects.all()
     serializer_class = AmenitySerializer
+    permission_classes = [IsStaff]
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-class MyBookingsView(generics.ListAPIView):
-    serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Booking.objects.filter(user=self.request.user)
+        user = self.request.user
+        # Staff can see all bookings, regular users only their own
+        if user.is_staff:
+            return Booking.objects.all()
+        return Booking.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Always assign the current user as the booking owner
+        serializer.save(user=self.request.user)
 
 class PaymentViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsStaff]
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
 

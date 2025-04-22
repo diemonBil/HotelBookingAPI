@@ -1,6 +1,5 @@
 from django.utils import timezone
 from rest_framework import serializers
-from django.conf import settings
 from django.utils.timezone import now
 from .models import Hotel, Room, Amenity, Booking, Payment, Review, RoomType
 
@@ -40,6 +39,10 @@ class RoomTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class BookingSerializer(serializers.ModelSerializer):
+    hotel = serializers.PrimaryKeyRelatedField(
+        queryset=Hotel.objects.all(),
+        write_only=True
+    )
     room_type = serializers.SlugRelatedField(
         slug_field='name',
         queryset=RoomType.objects.all(),
@@ -50,7 +53,7 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            'room_type', 'check_in', 'check_out',
+            'hotel', 'room_type', 'check_in', 'check_out',
             'adults', 'children', 'rooms'
         ]
 
@@ -67,6 +70,7 @@ class BookingSerializer(serializers.ModelSerializer):
     def validate(self, data):
         check_in = data['check_in']
         check_out = data['check_out']
+        hotel = data['hotel']
         room_type = data['room_type']
         adults = data['adults']
         children = data['children']
@@ -74,6 +78,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
         # Find all rooms of the selected type that can fit the guest count
         possible_rooms = Room.objects.filter(
+            hotel=hotel,
             room_type=room_type,
             max_guests__gte=total_guests,
             is_available=True
