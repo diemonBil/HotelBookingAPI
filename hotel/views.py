@@ -1,5 +1,5 @@
 from django.utils.timezone import make_aware
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -34,6 +34,16 @@ class AmenityViewSet(viewsets.ModelViewSet):
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class MyBookingsView(generics.ListAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Booking.objects.filter(user=self.request.user)
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
