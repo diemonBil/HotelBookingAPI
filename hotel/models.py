@@ -56,6 +56,7 @@ class Booking(models.Model):
 class Payment(models.Model):
     booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='payment')
     amount = models.DecimalField(max_digits=7, decimal_places=2)
+    invoice_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     status = models.CharField(max_length=255)
     payment_date = models.DateTimeField()
 
