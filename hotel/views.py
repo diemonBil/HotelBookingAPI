@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from django.utils.timezone import make_aware
 from rest_framework import viewsets
@@ -171,8 +172,10 @@ def available_room_types(request):
 @permission_classes([permissions.AllowAny])
 def update_payment_status(request):
     # Extract invoice_id and new status from the request payload
-    invoice_id = request.data.get('invoice_id')
+    invoice_id = request.data.get('invoiceId')
     new_status = request.data.get('status')
+
+    print("Webhook data:", request.data)
 
     # Validate input: both fields are required
     if not invoice_id or not new_status:
