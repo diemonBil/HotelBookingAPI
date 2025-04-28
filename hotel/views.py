@@ -175,8 +175,6 @@ def update_payment_status(request):
     invoice_id = request.data.get('invoiceId')
     new_status = request.data.get('status')
 
-    print("Webhook data:", request.data)
-
     # Validate input: both fields are required
     if not invoice_id or not new_status:
         return Response({'error': 'invoice_id and status are required'}, status=400)

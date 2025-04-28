@@ -25,9 +25,9 @@ def create_monobank_invoice(payment):
             "caption": "Bill payment",
         },
         # Where the user will be redirected after completing the payment
-        "redirectUrl": "https://6622-146-0-81-231.ngrok-free.app/api/v1/payment-success/",
+        "redirectUrl": "https://5842-176-111-181-98.ngrok-free.app/api/v1/payment-success/",
         # Where Monobank will send a POST request with payment result
-        "webHookUrl": "https://6622-146-0-81-231.ngrok-free.app/api/v1/payment/update-status/"
+        "webHookUrl": "https://5842-176-111-181-98.ngrok-free.app/api/v1/payment/update-status/"
     }
 
     # Send the POST request to Monobank to create the invoice
