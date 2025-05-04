@@ -1,0 +1,715 @@
+[
+{
+    "model": "hotel.amenity",
+    "pk": 1,
+    "fields": {
+        "name": "Free parking",
+        "description": ""
+    }
+},
+{
+    "model": "hotel.amenity",
+    "pk": 2,
+    "fields": {
+        "name": "Free WiFi",
+        "description": "High-speed wifi up to 1000 megabits per second"
+    }
+},
+{
+    "model": "hotel.amenity",
+    "pk": 3,
+    "fields": {
+        "name": "Non-smoking rooms",
+        "description": "Rooms with a 100% smoke-free environment."
+    }
+},
+{
+    "model": "hotel.amenity",
+    "pk": 4,
+    "fields": {
+        "name": "Spa",
+        "description": "Relaxing wellness treatments and massage services."
+    }
+},
+{
+    "model": "hotel.amenity",
+    "pk": 5,
+    "fields": {
+        "name": "EV charging",
+        "description": ""
+    }
+},
+{
+    "model": "hotel.hotel",
+    "pk": 1,
+    "fields": {
+        "name": "Hilton Kyiv",
+        "location": "Taras Shevchenko Boulevard, 30, Kyiv, Ukraine",
+        "description": "WeТre located in KyivТs Center, opposite the A.V. Fomin Botanical Gardens. The Golden Gate, Kyiv History Museum, and the National Opera of Ukraine are within a 15-minute walk. Our hotel offers modern architecture, an exclusive Executive Lounge, and an on-site restaurant and bar."
+    }
+},
+{
+    "model": "hotel.hotel",
+    "pk": 2,
+    "fields": {
+        "name": "Greguar Hotel & Apartments",
+        "location": "Velyka Vasylkivska Street, 67/7, Kyiv, Ukraine",
+        "description": "Greguar Ц cozy rooms and an individual approach to each Guest. We care about safety Ц we have a shelter. Book a room right now. We are waiting for you!"
+    }
+},
+{
+    "model": "hotel.hotel",
+    "pk": 3,
+    "fields": {
+        "name": "Summit Apart Hotel",
+        "location": "5 Pushkinska Street, 3d floor, apartment 11, Kyiv, Ukraine",
+        "description": "Ideally located in the Shevchenkivskyj district of Kiev, Summit Apart Hotel is located less than 1 km from Shevchenko Park, a 12-minute walk from St. Volodymyr's Cathedral and less than 1 km from National Reserve \"Sophia of Kyiv\". The property is around 2.5 km from National Sports Complex \"Olympic\", 2.9 km from Kiev-Pasazhyrskyi Railway Station and 5.1 km from Mykola Syadristy Microminiatures Museum. Free WiFi is available. The property offers a paid airport shuttle service."
+    }
+},
+{
+    "model": "hotel.roomtype",
+    "pk": 1,
+    "fields": {
+        "name": "Standard",
+        "description": "A basic room with essential amenities for a comfortable stay."
+    }
+},
+{
+    "model": "hotel.roomtype",
+    "pk": 2,
+    "fields": {
+        "name": "Deluxe",
+        "description": "Spacious room with upgraded furnishings and additional amenities."
+    }
+},
+{
+    "model": "hotel.roomtype",
+    "pk": 3,
+    "fields": {
+        "name": "Suite",
+        "description": "Large multi-room layout with separate living area and premium features."
+    }
+},
+{
+    "model": "hotel.roomtype",
+    "pk": 4,
+    "fields": {
+        "name": "Family Room",
+        "description": "Designed for families, includes extra beds or sleeping space for children."
+    }
+},
+{
+    "model": "hotel.roomtype",
+    "pk": 5,
+    "fields": {
+        "name": "Penthouse",
+        "description": "Luxurious top-floor suite with panoramic views and exclusive features."
+    }
+},
+{
+    "model": "hotel.room",
+    "pk": 1,
+    "fields": {
+        "hotel": 1,
+        "room_number": 21,
+        "room_type": 2,
+        "price_per_night": "1000.00",
+        "is_available": true,
+        "max_guests": 2,
+        "amenities": [
+            1,
+            2,
+            3,
+            5
+        ]
+    }
+},
+{
+    "model": "hotel.room",
+    "pk": 2,
+    "fields": {
+        "hotel": 1,
+        "room_number": 1,
+        "room_type": 1,
+        "price_per_night": "400.00",
+        "is_available": true,
+        "max_guests": 2,
+        "amenities": [
+            2
+        ]
+    }
+},
+{
+    "model": "hotel.room",
+    "pk": 3,
+    "fields": {
+        "hotel": 1,
+        "room_number": 30,
+        "room_type": 5,
+        "price_per_night": "2500.00",
+        "is_available": true,
+        "max_guests": 6,
+        "amenities": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ]
+    }
+},
+{
+    "model": "hotel.room",
+    "pk": 4,
+    "fields": {
+        "hotel": 3,
+        "room_number": 31,
+        "room_type": 1,
+        "price_per_night": "5.00",
+        "is_available": true,
+        "max_guests": 5,
+        "amenities": [
+            1,
+            2,
+            3
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 3,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-14T12:00:00Z",
+        "check_out": "2025-05-16T12:00:00Z",
+        "adults": 1,
+        "children": 1,
+        "rooms": [
+            2
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 9,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-04-25T13:00:00Z",
+        "check_out": "2025-04-27T14:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 10,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-04-28T13:00:00Z",
+        "check_out": "2025-04-30T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 11,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-01T13:00:00Z",
+        "check_out": "2025-05-03T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 12,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-03T13:00:00Z",
+        "check_out": "2025-05-05T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 13,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-05T13:00:00Z",
+        "check_out": "2025-05-07T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 14,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-07T13:00:00Z",
+        "check_out": "2025-05-09T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 15,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-09T13:00:00Z",
+        "check_out": "2025-05-11T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 16,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-11T13:00:00Z",
+        "check_out": "2025-05-13T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 17,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-13T13:00:00Z",
+        "check_out": "2025-05-15T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 18,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-15T13:00:00Z",
+        "check_out": "2025-05-17T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 19,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-17T13:00:00Z",
+        "check_out": "2025-05-19T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 20,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-19T13:00:00Z",
+        "check_out": "2025-05-21T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 21,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-21T13:00:00Z",
+        "check_out": "2025-05-23T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 22,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-23T13:00:00Z",
+        "check_out": "2025-05-25T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 23,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-25T13:00:00Z",
+        "check_out": "2025-05-27T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 24,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-27T13:00:00Z",
+        "check_out": "2025-05-29T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.booking",
+    "pk": 25,
+    "fields": {
+        "user": 1,
+        "check_in": "2025-05-29T13:00:00Z",
+        "check_out": "2025-05-31T13:00:00Z",
+        "adults": 5,
+        "children": 0,
+        "rooms": [
+            4
+        ]
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 1,
+    "fields": {
+        "booking": 3,
+        "amount": "800.00",
+        "invoice_id": null,
+        "status": "pending",
+        "payment_date": "2025-04-15T07:47:31.709Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 7,
+    "fields": {
+        "booking": 9,
+        "amount": "10.00",
+        "invoice_id": "inv_3d2d98d979",
+        "status": "pending",
+        "payment_date": "2025-04-24T11:39:58.898Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 8,
+    "fields": {
+        "booking": 10,
+        "amount": "10.00",
+        "invoice_id": "inv_1d01648225",
+        "status": "pending",
+        "payment_date": "2025-04-24T11:53:39.299Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 9,
+    "fields": {
+        "booking": 11,
+        "amount": "10.00",
+        "invoice_id": "inv_7667c5ac0f",
+        "status": "pending",
+        "payment_date": "2025-04-24T11:58:01.510Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 10,
+    "fields": {
+        "booking": 12,
+        "amount": "10.00",
+        "invoice_id": "inv_3025fc192e",
+        "status": "pending",
+        "payment_date": "2025-04-24T12:01:04.419Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 11,
+    "fields": {
+        "booking": 13,
+        "amount": "10.00",
+        "invoice_id": "inv_f944a940a8",
+        "status": "pending",
+        "payment_date": "2025-04-24T12:02:43.887Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 12,
+    "fields": {
+        "booking": 14,
+        "amount": "10.00",
+        "invoice_id": "2504242MHAnteaYFkM5f",
+        "status": "pending",
+        "payment_date": "2025-04-24T12:05:25.550Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 13,
+    "fields": {
+        "booking": 15,
+        "amount": "10.00",
+        "invoice_id": "2504246fdVw9qjsHaNJ1",
+        "status": "pending",
+        "payment_date": "2025-04-24T12:14:37.575Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 14,
+    "fields": {
+        "booking": 16,
+        "amount": "10.00",
+        "invoice_id": "2504244wwCAu3JJbw487",
+        "status": "success",
+        "payment_date": "2025-04-24T12:43:59.724Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 15,
+    "fields": {
+        "booking": 17,
+        "amount": "10.00",
+        "invoice_id": "2504249e53aZNrsCd82F",
+        "status": "created",
+        "payment_date": "2025-04-24T12:48:05.708Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 16,
+    "fields": {
+        "booking": 18,
+        "amount": "10.00",
+        "invoice_id": "2504247FgrYT9L1xKd7s",
+        "status": "success",
+        "payment_date": "2025-04-24T12:53:11.959Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 17,
+    "fields": {
+        "booking": 19,
+        "amount": "10.00",
+        "invoice_id": "250424BpnYmhmroCZWPM",
+        "status": "created",
+        "payment_date": "2025-04-24T12:58:25.362Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 18,
+    "fields": {
+        "booking": 20,
+        "amount": "10.00",
+        "invoice_id": "2504244mZcELmGNaXMTC",
+        "status": "success",
+        "payment_date": "2025-04-24T13:07:51.151Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 19,
+    "fields": {
+        "booking": 21,
+        "amount": "10.00",
+        "invoice_id": "2504242dDdKcEYTSGi3z",
+        "status": "success",
+        "payment_date": "2025-04-24T13:11:38.217Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 20,
+    "fields": {
+        "booking": 22,
+        "amount": "10.00",
+        "invoice_id": "2504276AhGBpk6ypMqee",
+        "status": "pending",
+        "payment_date": "2025-04-27T06:14:23.710Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 21,
+    "fields": {
+        "booking": 23,
+        "amount": "10.00",
+        "invoice_id": "250427CCdCsete8o2NjD",
+        "status": "success",
+        "payment_date": "2025-04-27T09:17:07.907Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 22,
+    "fields": {
+        "booking": 24,
+        "amount": "10.00",
+        "invoice_id": "2504277Fv5cNDZk5k9zq",
+        "status": "created",
+        "payment_date": "2025-04-27T09:21:03.817Z"
+    }
+},
+{
+    "model": "hotel.payment",
+    "pk": 23,
+    "fields": {
+        "booking": 25,
+        "amount": "10.00",
+        "invoice_id": "250427E44ryfSfgRVpVn",
+        "status": "success",
+        "payment_date": "2025-04-27T09:21:40.715Z"
+    }
+},
+{
+    "model": "hotel.review",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "hotel": 3,
+        "rating": 4,
+        "comment": "Great place for a family vacation! The rooms were spacious and clean, the breakfast was delicious, and the staff was very friendly. The pool was well-maintained, and the mountain view was a nice bonus. We'd love to come back!",
+        "created_at": "2025-04-08T07:32:42.966Z"
+    }
+},
+{
+    "model": "hotel.review",
+    "pk": 2,
+    "fields": {
+        "user": 1,
+        "hotel": 1,
+        "rating": 5,
+        "comment": "Absolutely amazing! Everything from the service to the ocean view was perfect. The private beach access made our stay unforgettable. Highly recommend for a romantic getaway.",
+        "created_at": "2025-04-08T07:32:59.980Z"
+    }
+},
+{
+    "model": "hotel.review",
+    "pk": 3,
+    "fields": {
+        "user": 1,
+        "hotel": 2,
+        "rating": 3,
+        "comment": "Good location close to downtown, but the room was a bit noisy at night. Staff was helpful and check-in was quick. A decent choice for a short city stay.\"",
+        "created_at": "2025-04-08T07:33:38.390Z"
+    }
+},
+{
+    "model": "user.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$ip5EY9XBf45Nh5O23rIsVH$/igPSixvNS9vj5JwECXkSao/174D5dht4WNBp+p95os=",
+        "last_login": "2025-04-07T09:04:30.248Z",
+        "is_superuser": true,
+        "username": "admin",
+        "first_name": "",
+        "last_name": "",
+        "email": "admin@admin.admin",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2025-04-07T09:03:42.112Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "user.user",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$jjL9iKdzDj64qIt0kYljRq$xiPLSRO8Btl+ulULCDNTAYjQSvvs7XooVbYDGP6So1Y=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "diemon_bil",
+        "first_name": "",
+        "last_name": "",
+        "email": "crazyevildocs@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2025-04-15T09:04:53.786Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "user.user",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$fO9SUfGZCEXUKKNyt2g0uo$oR6ReDUUklsiFecR91Xp9T36Py5hUauAnc9hySRSQNE=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "alien",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2025-04-17T06:28:26.745Z",
+        "groups": [],
+        "user_permissions": []
+    }
+}
+]
