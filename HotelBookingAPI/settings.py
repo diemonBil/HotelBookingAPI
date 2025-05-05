@@ -23,13 +23,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-i09y(rv9(p=w$i8_@4d)_e)5dobaz%dkl=ff+q$l7qe2q8ro_#'
 
+# Redirect all HTTP requests to HTTPS
+SECURE_SSL_REDIRECT = True
+
+# Ensure session cookies are only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+
+# Ensure CSRF cookies are only sent over HTTPS
+CSRF_COOKIE_SECURE = True
+
+# Prevent the site from being embedded in an iframe (protects against clickjacking)
+X_FRAME_OPTIONS = 'DENY'
+
+# Prevent the browser from trying to guess the content type (protects against MIME-type attacks)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "5842-176-111-181-98.ngrok-free.app",
+    '*',
 ]
 
 
