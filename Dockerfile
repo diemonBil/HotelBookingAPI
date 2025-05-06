@@ -1,13 +1,24 @@
-FROM python:3.12.3
-LABEL maintainer="crazyevildocs@gmail.com"
+# Use an official slim Python image as a base
+FROM python:3.11-slim
 
-ENV PYTHOUNNBUFFERED 1
+# Set working directory inside the container
+WORKDIR /app
 
-WORKDIR app/
+# Copy dependency file first to leverage Docker cache
+COPY requirements.txt .
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+# Install Python dependencies without caching to keep image small
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the rest of the application code
 COPY . .
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Set environment variables for better performance
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Expose the default port used by the Django app
+EXPOSE 8000
+
+# Run the application using Gunicorn WSGI server
+CMD ["gunicorn", "HotelBookingAPI.wsgi:application", "--bind", "0.0.0.0:8000"]
