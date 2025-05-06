@@ -21,28 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i09y(rv9(p=w$i8_@4d)_e)5dobaz%dkl=ff+q$l7qe2q8ro_#'
-
-# Redirect all HTTP requests to HTTPS
-SECURE_SSL_REDIRECT = True
-
-# Ensure session cookies are only sent over HTTPS
-SESSION_COOKIE_SECURE = True
-
-# Ensure CSRF cookies are only sent over HTTPS
-CSRF_COOKIE_SECURE = True
-
-# Prevent the site from being embedded in an iframe (protects against clickjacking)
-X_FRAME_OPTIONS = 'DENY'
-
-# Prevent the browser from trying to guess the content type (protects against MIME-type attacks)
-SECURE_CONTENT_TYPE_NOSNIFF = True
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = [
-    '*',
+    os.getenv('ALLOWED_HOSTS'),
 ]
 
 
@@ -56,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_yasg',
     'hotel',
     'user',
 ]
@@ -155,7 +141,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

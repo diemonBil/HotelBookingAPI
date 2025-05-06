@@ -57,6 +57,9 @@ class BookingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Skip real DB query during schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Booking.objects.none()
         user = self.request.user
         # Staff can see all bookings, regular users only their own
         if user.is_staff:
