@@ -20,5 +20,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Expose the default port used by the Django app
 EXPOSE 8000
 
+RUN python manage.py collectstatic --noinput
+
 # Run the application using Gunicorn WSGI server
-CMD ["gunicorn", "HotelBookingAPI.wsgi:application", "--bind", "0.0.0.0:8000", "--log-level=debug"]
+CMD ["gunicorn", "HotelBookingAPI.wsgi:application", "--bind", "0.0.0.0:8000"]
