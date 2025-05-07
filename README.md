@@ -118,6 +118,12 @@ HotelBookingAPI/ # Django project configuration
 
 ## 🖼️ Screenshots
 
+### 👤 User Me endpoint
+![Me](images/me.png)
+
+### 🛏 Bookings list
+![Bookings list](images/bookings.png)
+
 ### ✅ Monobank Payment
 ![Payment](images/payment.png)
 
