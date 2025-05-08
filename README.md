@@ -118,6 +118,9 @@ HotelBookingAPI/ # Django project configuration
 
 ## 🖼️ Screenshots
 
+### 📊️ Database Schema
+![Schema](images/HotelBookingAPIScheme.png)
+
 ### 👤 User Me endpoint
 ![Me](images/me.png)
 
