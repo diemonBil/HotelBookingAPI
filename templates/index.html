@@ -1,0 +1,50 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stayline — Hotel Booking</title>
+  <meta name="description"
+        content="Demo storefront for the Hotel Booking API: browse hotels, check real availability and reserve a room.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127976;</text></svg>">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar__inner">
+      <a class="brand" href="#/">
+        <span class="brand__mark" aria-hidden="true">◆</span>
+        Stayline
+      </a>
+      <nav id="nav" aria-label="Main"></nav>
+    </div>
+  </header>
+
+  <main id="view">
+    <noscript>
+      <section class="section shell">
+        <p class="notice notice--info">
+          This client is rendered in the browser. The API itself works without JavaScript —
+          see <a href="/api/v1/docs/">the documentation</a>.
+        </p>
+      </section>
+    </noscript>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">
+      <span>Demo client for the Hotel Booking API. Payments run through the offline provider.</span>
+      <span>
+        <a href="/api/v1/docs/">API docs</a> ·
+        <a href="/api/v1/redoc/">ReDoc</a> ·
+        <a href="/admin/">Admin</a>
+      </span>
+    </div>
+  </footer>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="{% static 'js/api.js' %}"></script>
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

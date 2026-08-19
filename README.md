@@ -3,7 +3,7 @@
 [![CI](https://github.com/diemonBil/HotelBookingAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/diemonBil/HotelBookingAPI/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Django](https://img.shields.io/badge/django-5.2-092E20)
-![Tests](https://img.shields.io/badge/tests-103-brightgreen)
+![Tests](https://img.shields.io/badge/tests-107-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)
 
 A REST API for hotel search, room availability, bookings and payments, built with
@@ -22,8 +22,10 @@ docker compose up --build
 
 That is the whole setup. No `.env`, no database, no merchant account: the stack ships a
 Postgres service, seeds demo data on first boot and defaults to a fake payment provider.
-The API is then at <http://localhost:8000/api/v1/> and the docs at
-<http://localhost:8000/api/v1/docs/>.
+
+- **<http://localhost:8000/>** — a demo storefront that exercises the whole flow
+- **<http://localhost:8000/api/v1/docs/>** — the OpenAPI documentation
+- Sign in as `guest1` / `DemoPassw0rd!42`
 
 ---
 
@@ -37,6 +39,7 @@ The API is then at <http://localhost:8000/api/v1/> and the docs at
 - [Configuration](#configuration)
 - [Testing](#testing)
 - [Payments](#payments)
+- [Demo client](#demo-client)
 - [Deployment](#deployment)
 - [Project layout](#project-layout)
 
@@ -56,6 +59,8 @@ The API is then at <http://localhost:8000/api/v1/> and the docs at
   author.
 - **Accounts** — JWT authentication with registration, login, refresh and a `/me` profile
   endpoint, rate limited against credential stuffing.
+- **A storefront** at `/` that drives all of the above from a browser, so the API can be
+  judged by using it rather than by reading a schema.
 
 ## Design notes
 
@@ -303,12 +308,12 @@ them. The ones that matter:
 ## Testing
 
 ```bash
-pytest                                   # 101 tests on SQLite, ~2s
+pytest                                   # 105 tests on SQLite, ~2s
 pytest --cov --cov-report=term           # coverage report
 ```
 
 Two tests need real concurrent transactions and are skipped on SQLite. To run
-the full 103 against PostgreSQL:
+the full 107 against PostgreSQL:
 
 ```bash
 TEST_DATABASE_URL=postgres://user:pass@host:5432/db pytest
@@ -346,6 +351,32 @@ PUBLIC_BASE_URL=https://your-public-host
 Monobank then calls `POST {PUBLIC_BASE_URL}/api/v1/payments/webhook/` with an `X-Sign`
 header; the request is rejected unless that signature verifies against the merchant public
 key. For local experiments, expose the port with a tunnel and point `PUBLIC_BASE_URL` at it.
+
+## Demo client
+
+`/` serves a small single-page storefront: browse and search stays, check availability for
+a date range and party size, register, book, pay and cancel, and leave a review.
+
+It is deliberately unglamorous engineering. There is **no build step** — plain CSS and two
+classic scripts collected by WhiteNoise like any other static asset — because a `npm
+install` standing between a reviewer and a running project defeats the point, and because
+the interesting work in this repository is behind the API, not in front of it.
+
+Three decisions worth noting:
+
+- **Same origin as the API.** No CORS configuration, no preflight, and no token crossing a
+  domain boundary. The client is just another thing Django serves.
+- **The access token never leaves memory.** Only the refresh token is persisted, and a
+  reload trades it for a new access token. That is weaker than an httpOnly cookie, which is
+  what a production build should use, and stronger than parking both in `localStorage`.
+- **Classic scripts, not ES modules.** `ManifestStaticFilesStorage` hashes asset filenames
+  in production but does not rewrite `import` specifiers, so relative module imports resolve
+  to names that no longer exist. Two plain scripts sidestep it.
+
+Because the offline provider has no way to call the webhook back, a pending booking offers
+a "Simulate payment" button that posts the event itself. Against a real acquirer that call
+is rejected — the endpoint verifies the provider's signature — so the shortcut cannot
+survive into production.
 
 ## Deployment
 
@@ -391,6 +422,8 @@ hotel/
 ├── management/       seed_demo_data command
 └── tests/            Test suite
 user/                 Custom user model, JWT auth, profile endpoint
+frontend/             Demo client: CSS and JavaScript, no build step
+templates/            Server-rendered shell and the payment landing page
 Dockerfile            Production image; entrypoint.sh migrates, then serves
 docker-compose.yml    Local stack: API + PostgreSQL
 render.yaml           Render blueprint: web service + managed database

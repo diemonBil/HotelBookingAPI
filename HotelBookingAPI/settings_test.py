@@ -42,8 +42,14 @@ MONOBANK_TOKEN = ""
 # itself is Django's concern, not this project's.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
-# Nothing has been collected into STATIC_ROOT during a test run, and WhiteNoise
-# warns about that on every single request.
+# Nothing has been collected into STATIC_ROOT during a test run, so the manifest
+# backend has no names to resolve and {% static %} would raise.
+STORAGES = {
+    **STORAGES,  # noqa: F405
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
+# WhiteNoise also warns about the empty STATIC_ROOT on every single request.
 MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m]  # noqa: F405
 
 # A local-memory cache keeps throttle counters isolated per test process.

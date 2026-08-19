@@ -1,0 +1,689 @@
+/* Hotel Booking API — demo client.
+   No build step: plain CSS with custom properties, light and dark. */
+
+:root {
+  color-scheme: light dark;
+
+  --ink: #17212e;
+  --ink-soft: #5a6675;
+  --ink-faint: #8a94a3;
+  --surface: #ffffff;
+  --surface-sunk: #f4f6fa;
+  --surface-raised: #ffffff;
+  --line: #e3e8ef;
+
+  --brand: #0f6f6a;
+  --brand-strong: #0b544f;
+  --brand-wash: #e6f2f1;
+  --accent: #c9743a;
+  --accent-wash: #fbeee4;
+
+  --ok: #1a7f47;
+  --ok-wash: #e4f4ea;
+  --warn: #9a6a00;
+  --warn-wash: #fdf1d8;
+  --bad: #b3261e;
+  --bad-wash: #fbe6e4;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 2px rgba(19, 32, 48, 0.06), 0 8px 24px -12px rgba(19, 32, 48, 0.18);
+  --shadow-lift: 0 2px 4px rgba(19, 32, 48, 0.08), 0 18px 40px -20px rgba(19, 32, 48, 0.3);
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --measure: 1180px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8edf4;
+    --ink-soft: #a3aebd;
+    --ink-faint: #77828f;
+    --surface: #0e1219;
+    --surface-sunk: #131924;
+    --surface-raised: #171e29;
+    --line: #263041;
+
+    --brand: #4bbdb3;
+    --brand-strong: #6fd3c9;
+    --brand-wash: #16302f;
+    --accent: #e0955f;
+    --accent-wash: #2e2117;
+
+    --ok: #63c98d;
+    --ok-wash: #14301f;
+    --warn: #e0b357;
+    --warn-wash: #302713;
+    --bad: #f0857c;
+    --bad-wash: #33191a;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.5), 0 18px 40px -20px rgba(0, 0, 0, 0.9);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--surface-sunk);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+a {
+  color: var(--brand);
+}
+
+.shell {
+  width: min(100% - 2.5rem, var(--measure));
+  margin-inline: auto;
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 650;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(140deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  font-size: 15px;
+}
+
+.topbar nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.navlink {
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.925rem;
+  font-weight: 500;
+}
+
+.navlink:hover {
+  background: var(--surface-sunk);
+  color: var(--ink);
+}
+
+.navlink[aria-current="page"] {
+  color: var(--brand);
+  background: var(--brand-wash);
+}
+
+/* ---------- buttons & controls ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.05rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 550;
+  font-size: 0.925rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.06s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--brand-strong);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--surface-sunk);
+}
+
+.btn--quiet {
+  background: transparent;
+  color: var(--ink-soft);
+  padding-inline: 0.6rem;
+}
+
+.btn--quiet:hover:not(:disabled) {
+  color: var(--bad);
+  background: var(--bad-wash);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+  min-width: 0;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.btn:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+/* ---------- hero & search ---------- */
+
+.hero {
+  padding: 3.25rem 0 1.5rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 2.9rem);
+  max-width: 18ch;
+}
+
+.hero p {
+  color: var(--ink-soft);
+  font-size: 1.06rem;
+  max-width: 56ch;
+  margin: 0.85rem 0 0;
+}
+
+.searchbar {
+  display: grid;
+  grid-template-columns: 1.6fr repeat(3, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 1rem;
+  margin-top: 1.75rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 860px) {
+  .searchbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .searchbar > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- layout helpers ---------- */
+
+.section {
+  padding: 2rem 0 3.5rem;
+}
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.section__head h2 {
+  font-size: 1.3rem;
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.spread {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- cards ---------- */
+
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card--pad {
+  padding: 1.15rem 1.25rem;
+}
+
+.hotelcard {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.hotelcard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Hotels have no photography in the API, so each gets a stable generated
+   cover derived from its id — decorative, but never a broken image. */
+.cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background-image:
+    radial-gradient(120% 120% at 15% 15%, rgba(255, 255, 255, 0.34), transparent 55%),
+    linear-gradient(140deg, var(--c1), var(--c2));
+}
+
+.cover--tall {
+  aspect-ratio: 21 / 8;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.cover__initial {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: -0.04em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.22);
+}
+
+.hotelcard__body {
+  padding: 1rem 1.15rem 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.hotelcard__body h3 {
+  font-size: 1.06rem;
+}
+
+/* ---------- pills, badges, rating ---------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: var(--surface-sunk);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.pill--ok { background: var(--ok-wash); color: var(--ok); }
+.pill--warn { background: var(--warn-wash); color: var(--warn); }
+.pill--bad { background: var(--bad-wash); color: var(--bad); }
+.pill--brand { background: var(--brand-wash); color: var(--brand); }
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.stars {
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+.price {
+  font-weight: 680;
+  font-size: 1.02rem;
+}
+
+.price span {
+  font-weight: 500;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+
+/* ---------- hotel detail ---------- */
+
+.detail {
+  display: grid;
+  gap: 1.75rem;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
+  align-items: start;
+  padding-bottom: 3.5rem;
+}
+
+@media (max-width: 900px) {
+  .detail {
+    grid-template-columns: 1fr;
+  }
+}
+
+.booking-panel {
+  position: sticky;
+  top: 88px;
+}
+
+.roomtype {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.roomtype:first-of-type {
+  border-top: 0;
+}
+
+.amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.review {
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.review:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.review__who {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.3rem;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--brand-wash);
+  color: var(--brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex: none;
+}
+
+/* ---------- bookings ---------- */
+
+.booking {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 1.15rem 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .booking {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+/* ---------- auth ---------- */
+
+.authwrap {
+  max-width: 27rem;
+  margin: 3.5rem auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--surface-sunk);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.25rem;
+}
+
+.tabs a {
+  flex: 1;
+  text-align: center;
+  padding: 0.45rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-weight: 550;
+  font-size: 0.92rem;
+}
+
+.tabs a[aria-current="page"] {
+  background: var(--surface-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- feedback ---------- */
+
+.notice {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+
+.notice--bad {
+  background: var(--bad-wash);
+  color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 25%, transparent);
+}
+
+.notice--info {
+  background: var(--brand-wash);
+  color: var(--brand-strong);
+  border-color: color-mix(in srgb, var(--brand) 25%, transparent);
+}
+
+.empty {
+  text-align: center;
+  padding: 3.5rem 1rem;
+  color: var(--ink-soft);
+}
+
+.empty__mark {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton {
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface-sunk), var(--line), var(--surface-sunk));
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+  height: 250px;
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.toasts {
+  position: fixed;
+  inset-block-end: 1.25rem;
+  inset-inline: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.toast {
+  pointer-events: auto;
+  max-width: 30rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--surface);
+  box-shadow: var(--shadow-lift);
+  font-size: 0.9rem;
+}
+
+.toast--bad {
+  background: var(--bad);
+  color: #fff;
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 1.75rem 0;
+  color: var(--ink-faint);
+  font-size: 0.875rem;
+  background: var(--surface);
+}
+
+.footer .shell {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}

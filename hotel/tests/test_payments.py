@@ -3,6 +3,7 @@
 import base64
 import json
 from decimal import Decimal
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from cryptography.hazmat.primitives import hashes, serialization
@@ -240,3 +241,11 @@ def test_failed_invoice_cancels_the_booking_and_frees_the_room(
     # With the provider healthy again the same room can be booked.
     monkeypatch.undo()
     assert auth_client.post(BOOKINGS_URL, booking_payload).status_code == 201
+
+
+@pytest.mark.django_db
+def test_fake_payment_url_carries_the_invoice_id(pending_booking):
+    """The demo client reads the invoice id straight out of the payment link."""
+    payment = pending_booking.payment
+    query = parse_qs(urlparse(payment.payment_url).query)
+    assert query["invoice"] == [payment.provider_invoice_id]
