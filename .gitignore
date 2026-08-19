@@ -1,38 +1,38 @@
-# Ignore Python cache files
+# Byte-compiled / cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 
-# Ignore virtual environment directories
+# Virtual environments
 .venv/
-env/
 venv/
+env/
 
-# Ignore SQLite database files
-db.sqlite3
-db.sqlite3-journal
-
-# Ignore IDE configuration files
-.idea/
-
-# Ignore log files and cache
-*.log
-*.pot
-.DS_Store
-*.swp
-*.swo
-
-# Ignore automatically generated static and media files
+# Django
+*.sqlite3
+*.sqlite3-journal
 staticfiles/
 media/
+*.log
 
-# Ignore environment variable files
+# Environment
 .env
-*.env
+.env.*
+!.env.example
 
-# Ignore migration files that should not be committed
-migrations/
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 
-# Ignore Docker-related files
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Docker
 docker-compose.override.yml
+schema.yaml
