@@ -6,6 +6,7 @@ These tests need real committed transactions and a backend with
     TEST_DATABASE_URL=postgres://... pytest hotel/tests/test_concurrency.py
 """
 
+import os
 import threading
 from decimal import Decimal
 
@@ -15,8 +16,14 @@ from django.db import connection, connections
 from hotel.models import Booking, Payment, Room
 from hotel.services import NoRoomAvailable, create_booking
 
+# CI sets REQUIRE_LOCKING_TESTS=1 on the PostgreSQL run. With it set the skip is
+# lifted, so a misconfigured job runs these tests against a backend that cannot
+# lock and fails loudly: a concurrency test that quietly disappears is worse
+# than not having one.
+_required = os.getenv("REQUIRE_LOCKING_TESTS") == "1"
+
 pytestmark = pytest.mark.skipif(
-    not connection.features.has_select_for_update,
+    not _required and not connection.features.has_select_for_update,
     reason="requires a backend with SELECT ... FOR UPDATE (PostgreSQL)",
 )
 
