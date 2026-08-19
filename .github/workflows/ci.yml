@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Check formatting
+        run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: hotel_booking
+          POSTGRES_USER: hotel
+          POSTGRES_PASSWORD: hotel
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://hotel:hotel@localhost:5432/hotel_booking
+      DJANGO_SECRET_KEY: ci-only-secret-key-long-enough-to-satisfy-the-deploy-check
+      DEBUG: "True"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Django system checks (deployment profile)
+        run: python manage.py check --deploy --fail-level ERROR
+        env:
+          DEBUG: "False"
+          ALLOWED_HOSTS: example.com
+
+      - name: Run tests (SQLite)
+        run: pytest -q
+
+      - name: Run tests (PostgreSQL)
+        # Only this run exercises SELECT ... FOR UPDATE, and therefore the
+        # concurrency tests, which are skipped on SQLite.
+        run: pytest --cov --cov-report=term --cov-report=xml
+        env:
+          TEST_DATABASE_URL: postgres://hotel:hotel@localhost:5432/hotel_booking
+
+      - name: Verify migrations apply to PostgreSQL
+        run: python manage.py migrate --noinput
+
+      - name: Verify the OpenAPI schema builds
+        run: python manage.py spectacular --fail-on-warn --file /dev/null
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t hotel-booking-api .
+      - name: Boot the stack and probe the health endpoint
+        run: |
+          docker compose up -d --build
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/api/v1/health/; then
+              docker compose down
+              exit 0
+            fi
+            sleep 3
+          done
+          docker compose logs
+          docker compose down
+          exit 1
