@@ -91,7 +91,7 @@ class BookingPaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ("status", "amount", "currency_code", "payment_url", "paid_at")
+        fields = ("provider", "status", "amount", "currency_code", "payment_url", "paid_at")
         read_only_fields = fields
 
 

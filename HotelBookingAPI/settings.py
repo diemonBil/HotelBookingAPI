@@ -186,11 +186,21 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# The demo client is plain CSS and JavaScript with no build step, so its assets
+# are collected straight from the source tree.
+STATICFILES_DIRS = [BASE_DIR / "frontend"]
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # The manifest backend rewrites asset URLs to hashed filenames, but it
+        # can only resolve names that collectstatic has already written. During
+        # development nothing has been collected, so {% static %} would raise.
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 

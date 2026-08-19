@@ -36,3 +36,6 @@ htmlcov/
 # Docker
 docker-compose.override.yml
 schema.yaml
+
+# Local agent tooling
+.claude/
