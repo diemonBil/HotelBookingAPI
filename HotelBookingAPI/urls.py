@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView
+from django.views.generic import TemplateView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -57,6 +57,7 @@ api_v1 = [
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include(api_v1)),
-    # A bare domain is more useful pointing at the docs than returning a 404.
-    path("", RedirectView.as_view(pattern_name="swagger-ui", permanent=False)),
+    # The demo client. Its own routing is hash-based, so no catch-all is
+    # needed and a refresh on any screen still resolves here.
+    path("", TemplateView.as_view(template_name="index.html"), name="home"),
 ]
