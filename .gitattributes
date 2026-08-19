@@ -1,0 +1,8 @@
+# Normalise line endings so a checkout on Windows cannot produce CRLF files
+# that break inside the Linux container (a CRLF shebang makes the entrypoint
+# fail with "no such file or directory").
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,55 @@
+[project]
+name = "hotel-booking-api"
+version = "1.0.0"
+description = "REST API for hotel search, room availability, bookings and payments."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "HotelBookingAPI.settings_test"
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+testpaths = ["hotel", "user"]
+
+[tool.coverage.run]
+source = ["hotel", "user", "HotelBookingAPI"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/__init__.py",
+    "*/asgi.py",
+    "*/wsgi.py",
+    "manage.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # import sorting
+    "B",    # bugbear
+    "UP",   # pyupgrade
+    "DJ",   # flake8-django
+    "C4",   # comprehensions
+    "SIM",  # simplify
+]
+ignore = [
+    "B008",  # DRF and Django idiomatically call functions in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests/*" = ["S101"]

@@ -1,0 +1,44 @@
+# Everything needed to run the API locally:
+#   cp .env.example .env && docker compose up --build
+# Values below fall back to working defaults, so an empty .env still boots.
+
+# Compose otherwise derives the project name from the checkout directory, which
+# on CI is "HotelBookingAPI" — and project names may not contain uppercase.
+name: hotel-booking-api
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hotel_booking}
+      POSTGRES_USER: ${POSTGRES_USER:-hotel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hotel}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hotel} -d ${POSTGRES_DB:-hotel_booking}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  web:
+    build: .
+    environment:
+      DEBUG: ${DEBUG:-True}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-development-key-not-for-production}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      DATABASE_URL: postgres://${POSTGRES_USER:-hotel}:${POSTGRES_PASSWORD:-hotel}@db:5432/${POSTGRES_DB:-hotel_booking}
+      # "fake" keeps the booking flow working without a merchant account.
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-fake}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
+      MONOBANK_TOKEN: ${MONOBANK_TOKEN:-}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

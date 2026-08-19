@@ -1,26 +1,40 @@
-# Use an official slim Python image as a base
-FROM python:3.11-slim
+FROM python:3.12-slim
 
-# Set working directory inside the container
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
 WORKDIR /app
 
-# Copy dependency file first to leverage Docker cache
+# Dependencies are copied first so that editing application code does not
+# invalidate the (slow) pip layer.
 COPY requirements.txt .
-
-# Install Python dependencies without caching to keep image small
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
 COPY . .
 
-# Set environment variables for better performance
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# Static files are baked into the image; WhiteNoise serves them at runtime.
+# The placeholder key is only needed to import settings during the build and
+# never leaves this layer.
+RUN DEBUG=True DJANGO_SECRET_KEY=build-time-placeholder \
+    python manage.py collectstatic --noinput
 
-# Expose the default port used by the Django app
+# Set the entrypoint executable here rather than trusting the mode recorded in
+# git: a checkout on Windows cannot carry the bit, and losing it makes the
+# container fail to start with "permission denied" while the build still
+# succeeds, because the entrypoint never runs during a build.
+RUN chmod +x /app/entrypoint.sh
+
+# Run as an unprivileged user.
+RUN useradd --create-home --uid 1000 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
-RUN python manage.py collectstatic --noinput
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD python /app/healthcheck.py
 
-# Run the application using Gunicorn WSGI server
-CMD ["gunicorn", "HotelBookingAPI.wsgi:application", "--bind", "0.0.0.0:8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+# Bind address and worker count come from gunicorn.conf.py, which reads $PORT.
+CMD ["gunicorn", "HotelBookingAPI.wsgi:application", "-c", "gunicorn.conf.py"]
