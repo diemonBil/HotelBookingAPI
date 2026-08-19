@@ -19,6 +19,12 @@ COPY . .
 RUN DEBUG=True DJANGO_SECRET_KEY=build-time-placeholder \
     python manage.py collectstatic --noinput
 
+# Set the entrypoint executable here rather than trusting the mode recorded in
+# git: a checkout on Windows cannot carry the bit, and losing it makes the
+# container fail to start with "permission denied" while the build still
+# succeeds, because the entrypoint never runs during a build.
+RUN chmod +x /app/entrypoint.sh
+
 # Run as an unprivileged user.
 RUN useradd --create-home --uid 1000 appuser \
     && chown -R appuser:appuser /app
