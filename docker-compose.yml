@@ -2,6 +2,10 @@
 #   cp .env.example .env && docker compose up --build
 # Values below fall back to working defaults, so an empty .env still boots.
 
+# Compose otherwise derives the project name from the checkout directory, which
+# on CI is "HotelBookingAPI" — and project names may not contain uppercase.
+name: hotel-booking-api
+
 services:
   db:
     image: postgres:16-alpine
@@ -16,6 +20,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
   web:
     build: .
