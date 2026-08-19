@@ -1,207 +1,264 @@
+from __future__ import annotations
+
 import json
+import logging
+
+from django.db import OperationalError, connection
+from django.db.models import Avg, Count
 from django.shortcuts import render
-from django.utils.timezone import make_aware
-from rest_framework import viewsets
-from rest_framework.decorators import api_view, permission_classes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes, throttle_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from datetime import datetime
-from rest_framework.permissions import IsAuthenticated, BasePermission
-from rest_framework import permissions
-from .models import Hotel, Room, Amenity, Booking, Payment, Review, RoomType
+
+from . import services
+from .models import Amenity, Booking, Hotel, Payment, Review, Room, RoomType
+from .payments import PaymentError, get_payment_provider
+from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly, IsStaff
 from .serializers import (
-    HotelSerializer, RoomSerializer, AmenitySerializer,
-    BookingSerializer, PaymentSerializer, ReviewSerializer, RoomTypeSerializer, PaymentStatusUpdateSerializer
+    AmenitySerializer,
+    AvailabilityQuerySerializer,
+    BookingSerializer,
+    HotelSerializer,
+    PaymentSerializer,
+    ReviewSerializer,
+    RoomSerializer,
+    RoomTypeSerializer,
 )
 
-""" Custom permission class that allows access only to staff users """
-class IsStaff(BasePermission):
-    def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_staff
+logger = logging.getLogger(__name__)
 
 
-""" ViewSet for managing Hotel objects (accessible only by staff) """
 class HotelViewSet(viewsets.ModelViewSet):
-    queryset = Hotel.objects.all()
+    """Public hotel catalogue. Staff may create, update and delete."""
+
     serializer_class = HotelSerializer
-    permission_classes = [IsStaff]
+    permission_classes = [IsAdminOrReadOnly]
+    filterset_fields = ["location"]
+    search_fields = ["name", "location", "description"]
+    ordering_fields = ["name", "average_rating"]
+    ordering = ["name"]
+
+    def get_queryset(self):
+        # Django drops Meta.ordering from aggregate queries, so it is restored
+        # here to keep pagination stable.
+        return Hotel.objects.annotate(
+            average_rating=Avg("reviews__rating"),
+            review_count=Count("reviews", distinct=True),
+        ).order_by("name")
 
 
-""" ViewSet for managing Room objects (accessible only by staff) """
 class RoomViewSet(viewsets.ModelViewSet):
-    queryset = Room.objects.all()
+    """Public room catalogue. Staff may create, update and delete."""
+
     serializer_class = RoomSerializer
-    permission_classes = [IsStaff]
+    permission_classes = [IsAdminOrReadOnly]
+    filterset_fields = ["hotel", "room_type", "is_available", "max_guests"]
+    ordering_fields = ["price_per_night", "room_number"]
+
+    def get_queryset(self):
+        # select_related/prefetch_related keep the list endpoint at a constant
+        # number of queries instead of one per row.
+        return Room.objects.select_related("hotel", "room_type").prefetch_related("amenities")
 
 
-""" ViewSet for managing RoomType objects (accessible only by staff) """
 class RoomTypeViewSet(viewsets.ModelViewSet):
     queryset = RoomType.objects.all()
     serializer_class = RoomTypeSerializer
-    permission_classes = [IsStaff]
+    permission_classes = [IsAdminOrReadOnly]
+    search_fields = ["name"]
 
 
-""" ViewSet for managing Amenity objects (accessible only by staff) """
 class AmenityViewSet(viewsets.ModelViewSet):
     queryset = Amenity.objects.all()
     serializer_class = AmenitySerializer
-    permission_classes = [IsStaff]
+    permission_classes = [IsAdminOrReadOnly]
+    search_fields = ["name"]
 
 
-"""
-    ViewSet for handling booking creation and viewing
-    Staff can view all bookings; regular users can only view their own
-"""
-class BookingViewSet(viewsets.ModelViewSet):
-    queryset = Booking.objects.all()
+@extend_schema_view(
+    list=extend_schema(description="Bookings of the current user; staff see all bookings."),
+    create=extend_schema(
+        description=(
+            "Reserve a room of the requested type and open a payment invoice. "
+            "The response includes `payment.payment_url` to send the guest to."
+        )
+    ),
+)
+class BookingViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Bookings are created and cancelled, never edited in place."""
+
     serializer_class = BookingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    filterset_fields = ["status", "hotel"]
+    ordering_fields = ["created_at", "check_in"]
 
     def get_queryset(self):
-        # Skip real DB query during schema generation
-        if getattr(self, 'swagger_fake_view', False):
+        # drf-spectacular introspects the view without a real request.
+        if getattr(self, "swagger_fake_view", False):
             return Booking.objects.none()
+        queryset = Booking.objects.select_related("hotel", "payment", "user").prefetch_related(
+            "rooms__hotel", "rooms__room_type"
+        )
         user = self.request.user
-        # Staff can see all bookings, regular users only their own
         if user.is_staff:
-            return Booking.objects.all()
-        return Booking.objects.filter(user=user)
+            return queryset
+        return queryset.filter(user=user)
 
     def perform_create(self, serializer):
-        # Automatically assign the booking to the current authenticated user
         serializer.save(user=self.request.user)
 
+    @extend_schema(
+        request=None,
+        responses={200: BookingSerializer},
+        description="Cancel a booking and release its room.",
+    )
+    @action(detail=True, methods=["post"])
+    def cancel(self, request, pk=None):
+        booking = self.get_object()
+        self.check_object_permissions(request, booking)
 
-"""ViewSet for managing Payment objects (accessible only by staff)"""
-class PaymentViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsStaff]
-    queryset = Payment.objects.all()
+        if booking.status == Booking.Status.CANCELLED:
+            return Response(
+                {"detail": "Booking is already cancelled."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        booking.status = Booking.Status.CANCELLED
+        booking.save(update_fields=["status"])
+        logger.info("Booking %s cancelled by user %s", booking.pk, request.user.pk)
+        return Response(self.get_serializer(booking).data)
+
+
+class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    """Payment records. Staff only: these are financial records."""
+
+    queryset = Payment.objects.select_related("booking").all()
     serializer_class = PaymentSerializer
+    permission_classes = [IsStaff]
+    filterset_fields = ["status", "provider"]
+    ordering_fields = ["created_at", "amount"]
 
 
-"""ViewSet for managing user reviews (no explicit permission set — open by default)"""
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+    """Anyone may read reviews; authors may edit only their own."""
+
     serializer_class = ReviewSerializer
+    filterset_fields = ["hotel", "rating"]
+    ordering_fields = ["created_at", "rating"]
+
+    def get_queryset(self):
+        return Review.objects.select_related("user", "hotel")
+
+    def get_permissions(self):
+        # Reading is public, writing requires a login, and editing requires
+        # ownership (enforced object-level by IsOwnerOrReadOnly).
+        if self.request.method in ("GET", "HEAD", "OPTIONS"):
+            return [AllowAny()]
+        return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-"""
-    Returns a list of available room types for a given hotel and date range.
 
-    This endpoint is used to check which room types are available for booking in a specific hotel
-    for the selected date range and number of guests. It validates the input parameters, 
-    checks each room type against existing bookings and capacity, and returns the types that 
-    have at least one available room.
-
-    Query Parameters:
-        - hotel: ID of the hotel to check
-        - check_in: Start date of the booking (ISO format: YYYY-MM-DDTHH:MM)
-        - check_out: End date of the booking (ISO format: YYYY-MM-DDTHH:MM)
-        - adults: Number of adult guests
-        - children: Number of child guests
-
-    Returns:
-        - 200 OK with a list of available room types (as serialized data)
-        - 400 Bad Request if required parameters are missing
-        - 404 Not Found if the specified hotel does not exist
-"""
-@api_view(['GET'])
+@extend_schema(
+    parameters=[
+        OpenApiParameter("hotel", int, required=True, description="Hotel id."),
+        OpenApiParameter("check_in", str, required=True, description="YYYY-MM-DD."),
+        OpenApiParameter("check_out", str, required=True, description="YYYY-MM-DD."),
+        OpenApiParameter("adults", int, description="Defaults to 1."),
+        OpenApiParameter("children", int, description="Defaults to 0."),
+    ],
+    responses={200: RoomTypeSerializer(many=True)},
+    description="Room types with at least one free room for the requested stay.",
+)
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def available_room_types(request):
-    # Get parameters from request
-    check_in = request.GET.get('check_in')
-    check_out = request.GET.get('check_out')
-    hotel_id = request.GET.get('hotel')
-    adults = int(request.GET.get('adults', 0))
-    children = int(request.GET.get('children', 0))
-    total_guests = adults + children
+    query = AvailabilityQuerySerializer(data=request.query_params)
+    query.is_valid(raise_exception=True)
+    data = query.validated_data
 
-    # Validate input parameters
-    if not check_in or not check_out or not hotel_id:
-        return Response({'error': 'Missing hotel, check_in or check_out'}, status=400)
+    room_types = services.available_room_types(
+        hotel=data["hotel"],
+        check_in=data["check_in"],
+        check_out=data["check_out"],
+        guests=data["adults"] + data["children"],
+    )
+    return Response(RoomTypeSerializer(room_types, many=True).data)
 
-    check_in = make_aware(datetime.fromisoformat(check_in))
-    check_out = make_aware(datetime.fromisoformat(check_out))
 
-    # Check if the hotel exists
+@extend_schema(
+    request=None,
+    responses={200: None, 400: None, 403: None, 404: None},
+    description=(
+        "Payment provider callback. The request is authenticated by the "
+        "provider's signature over the raw body, not by a user session."
+    ),
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def payment_webhook(request):
+    provider = get_payment_provider()
+
     try:
-        hotel = Hotel.objects.get(id=hotel_id)
-    except Hotel.DoesNotExist:
-        return Response({'error': 'Hotel not found'}, status=404)
-
-    available_types = []
-
-    # Iterate through all room types
-    for room_type in RoomType.objects.all():
-        # Get rooms in the selected hotel of this type that can accommodate the guest count
-        rooms = Room.objects.filter(
-            hotel=hotel,
-            room_type=room_type,
-            max_guests__gte=total_guests,
-            is_available=True
+        if not provider.verify_webhook(request.body, request.headers):
+            # Do not reveal why: an attacker probing the endpoint learns nothing.
+            return Response({"detail": "Invalid signature."}, status=status.HTTP_403_FORBIDDEN)
+    except PaymentError:
+        logger.exception("Webhook verification could not be completed")
+        return Response(
+            {"detail": "Verification unavailable."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
-        # Check if at least one room of this type is available for the selected dates
-        for room in rooms:
-            overlapping = Booking.objects.filter(
-                rooms=room,
-                check_in__lt=check_out,
-                check_out__gt=check_in
-            )
-            if not overlapping.exists():
-                available_types.append(room_type)
-                break  # Found one available room of this type — no need to check more
+    try:
+        payload = json.loads(request.body or b"{}")
+    except json.JSONDecodeError:
+        return Response({"detail": "Malformed JSON."}, status=status.HTTP_400_BAD_REQUEST)
+    if not isinstance(payload, dict):
+        return Response({"detail": "Malformed payload."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Return available room types as JSON
-    serializer = RoomTypeSerializer(available_types, many=True)
-    return Response(serializer.data)
-
-"""
-    Updates the status of a payment based on invoice_id.
-
-    This endpoint is typically called by Monobank via webhook after a payment is processed.
-    It receives the invoice_id and the new status (e.g., 'paid') and updates the corresponding
-    Payment record in the database.
-
-    Expected JSON payload:
-        {
-            "invoice_id": "inv_abc123",
-            "status": "paid"
-        }
-
-    Returns:
-        - 200 OK with success message if update is successful
-        - 400 Bad Request if required data is missing or validation fails
-        - 404 Not Found if payment with given invoice_id does not exist
-"""
-@api_view(['POST'])
-@permission_classes([permissions.AllowAny])
-def update_payment_status(request):
-    # Extract invoice_id and new status from the request payload
-    invoice_id = request.data.get('invoiceId')
-    new_status = request.data.get('status')
-
-    # Validate input: both fields are required
-    if not invoice_id or not new_status:
-        return Response({'error': 'invoice_id and status are required'}, status=400)
+    event = provider.parse_webhook(payload)
+    if not event.provider_invoice_id and not event.reference:
+        return Response(
+            {"detail": "Payload identifies no invoice."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     try:
-        # Attempt to retrieve the payment object by invoice ID
-        payment = Payment.objects.get(invoice_id=invoice_id)
+        services.apply_payment_event(event)
     except Payment.DoesNotExist:
-        # Return an error if payment was not found
-        return Response({'error': 'Payment not found'}, status=404)
+        logger.warning("Webhook for unknown invoice %s", event.provider_invoice_id)
+        return Response({"detail": "Payment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Create a serializer with partial update to update only the status field
-    serializer = PaymentStatusUpdateSerializer(payment, data={'status': new_status}, partial=True)
-    if serializer.is_valid():
-        # Save the updated payment status
-        serializer.save()
-        return Response({'message': 'Payment status updated successfully'})
+    return Response({"detail": "Payment status updated."})
 
-    # Return validation errors if any
-    return Response(serializer.errors, status=400)
 
-""" Render a success page after payment is completed """
 def payment_success(request):
-    return render(request, 'payment-success.html')
+    """Landing page the provider redirects the guest to after paying."""
+    return render(request, "payment-success.html")
+
+
+@extend_schema(
+    responses={200: None, 503: None},
+    description="Liveness and database connectivity probe, used by Docker and load balancers.",
+)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+@throttle_classes([])
+def health(request):
+    try:
+        connection.ensure_connection()
+    except OperationalError:
+        logger.exception("Health check failed: database unreachable")
+        return Response(
+            {"status": "error", "database": "unreachable"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    return Response({"status": "ok", "database": "ok"})

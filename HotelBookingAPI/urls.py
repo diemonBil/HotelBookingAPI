@@ -1,49 +1,62 @@
+from django.contrib import admin
+from django.urls import include, path
+from django.views.generic import RedirectView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 from rest_framework.routers import DefaultRouter
-from django.urls import path, include
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-from django.conf import settings
-from django.conf.urls.static import static
+
 from hotel.views import (
-    HotelViewSet, RoomViewSet, AmenityViewSet,
-    BookingViewSet, PaymentViewSet, ReviewViewSet, RoomTypeViewSet, available_room_types, update_payment_status,
-    payment_success
+    AmenityViewSet,
+    BookingViewSet,
+    HotelViewSet,
+    PaymentViewSet,
+    ReviewViewSet,
+    RoomTypeViewSet,
+    RoomViewSet,
+    available_room_types,
+    health,
+    payment_success,
+    payment_webhook,
 )
+
 router = DefaultRouter()
-router.register(r'hotels', HotelViewSet)
-router.register(r'rooms', RoomViewSet)
-router.register(r'room-types', RoomTypeViewSet)
-router.register(r'amenities', AmenityViewSet)
-router.register(r'bookings', BookingViewSet)
-router.register(r'payments', PaymentViewSet)
-router.register(r'reviews', ReviewViewSet)
+router.register("hotels", HotelViewSet, basename="hotel")
+router.register("rooms", RoomViewSet, basename="room")
+router.register("room-types", RoomTypeViewSet)
+router.register("amenities", AmenityViewSet)
+router.register("bookings", BookingViewSet, basename="booking")
+router.register("payments", PaymentViewSet)
+router.register("reviews", ReviewViewSet, basename="review")
 
-
-schema_view = get_schema_view(
-   openapi.Info(
-      title="Hotel Booking API",
-      default_version='v1',
-      description="Documentation for the hotel booking project",
-      terms_of_service="https://www.example.com/terms/",
-      contact=openapi.Contact(email="you@example.com"),
-      license=openapi.License(name="MIT License"),
-   ),
-   public=True,
-   permission_classes=[permissions.AllowAny],
-)
-
-urlpatterns = [
-    path('api/v1/', include(router.urls)),
-    path('api/v1/available-room-types/', available_room_types),
-    path('api/v1/user/', include('user.urls')),
-    path('api/v1/payment/update-status/', update_payment_status, name='update-payment-status'),
-    path('api/v1/payment-success/', payment_success, name='payment-success'),
-    # Swagger UI
-    path('api/v1/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    # ReDoc UI
-    path('api/v1/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+# These sit before the router include: "webhook" and "success" would otherwise
+# be captured by the router's /payments/<pk>/ detail route.
+payment_urls = [
+    path("payments/webhook/", payment_webhook, name="payment-webhook"),
+    path("payments/success/", payment_success, name="payment-success"),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+api_v1 = [
+    path("health/", health, name="health"),
+    *payment_urls,
+    path("availability/room-types/", available_room_types, name="available-room-types"),
+    path("user/", include("user.urls")),
+    path("", include(router.urls)),
+    # OpenAPI schema and the two documentation UIs rendered from it.
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+]
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/v1/", include(api_v1)),
+    # A bare domain is more useful pointing at the docs than returning a 404.
+    path("", RedirectView.as_view(pattern_name="swagger-ui", permanent=False)),
+]
