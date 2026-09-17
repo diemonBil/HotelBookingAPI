@@ -14,7 +14,7 @@ Django REST Framework.
 <https://hotel-booking-api-b4jy.onrender.com/api/v1/docs/>
 
 > Hosted on free tiers, so the first request after a spell of inactivity spins the
-> instance back up and can take up to ~50 seconds. Every request after that is immediate.
+> instance back up and takes ~40 seconds. Every request after that is immediate.
 > Sign in on the demo with `guest1` / `DemoPassw0rd!42`.
 
 The interesting part of this project is not CRUD — it is what sits underneath it:
@@ -411,7 +411,7 @@ The database is deliberately **not** Render's: its free PostgreSQL is deleted af
 days. The blueprint expects `DATABASE_URL` to point at a free permanent host such as
 [Neon](https://neon.tech), entered once in the Render dashboard. One caveat remains on the
 free web tier: the instance sleeps after ~15 minutes idle, so the first request afterwards
-takes roughly a minute.
+takes ~40 seconds while it wakes.
 
 To take real payments, set `PAYMENT_PROVIDER=monobank` and `MONOBANK_TOKEN` in the Render
 dashboard; `PUBLIC_BASE_URL` is already correct, so the webhook URL resolves by itself.
