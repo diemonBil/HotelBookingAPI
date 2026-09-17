@@ -5,9 +5,17 @@
 ![Django](https://img.shields.io/badge/django-5.2-092E20)
 ![Tests](https://img.shields.io/badge/tests-107-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A REST API for hotel search, room availability, bookings and payments, built with
 Django REST Framework.
+
+**Live demo:** <https://hotel-booking-api-b4jy.onrender.com/> · **API docs:**
+<https://hotel-booking-api-b4jy.onrender.com/api/v1/docs/>
+
+> Hosted on free tiers, so the first request after a spell of inactivity spins the
+> instance back up and can take up to ~50 seconds. Every request after that is immediate.
+> Sign in on the demo with `guest1` / `DemoPassw0rd!42`.
 
 The interesting part of this project is not CRUD — it is what sits underneath it:
 **overlap-aware availability**, **a booking path that cannot double-sell a room under
@@ -428,3 +436,7 @@ Dockerfile            Production image; entrypoint.sh migrates, then serves
 docker-compose.yml    Local stack: API + PostgreSQL
 render.yaml           Render blueprint: web service + managed database
 ```
+
+## License
+
+Released under the [MIT License](LICENSE).
