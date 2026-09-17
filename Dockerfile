@@ -14,10 +14,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Static files are baked into the image; WhiteNoise serves them at runtime.
+# DEBUG must be off here, exactly as in production: the storage backend is chosen
+# by DEBUG, and only the manifest backend writes staticfiles.json. Built with
+# DEBUG on, the image ships without a manifest and every template using
+# {% static %} returns a 500 once the container runs with DEBUG off. The `test`
+# fails the build instead of letting that reach a deployment.
 # The placeholder key is only needed to import settings during the build and
 # never leaves this layer.
-RUN DEBUG=True DJANGO_SECRET_KEY=build-time-placeholder \
-    python manage.py collectstatic --noinput
+RUN DEBUG=False DJANGO_SECRET_KEY=build-time-placeholder-not-used-at-runtime \
+    python manage.py collectstatic --noinput \
+    && test -f staticfiles/staticfiles.json
 
 # Set the entrypoint executable here rather than trusting the mode recorded in
 # git: a checkout on Windows cannot carry the bit, and losing it makes the
