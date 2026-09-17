@@ -565,6 +565,17 @@ textarea {
   }
 }
 
+.booking__hotel {
+  font-weight: 650;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.booking__hotel:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
 .dates {
   display: inline-flex;
   align-items: center;

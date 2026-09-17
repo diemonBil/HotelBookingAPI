@@ -546,7 +546,10 @@
     return (
       '<article class="card booking">' +
       "<div><div class='row' style='gap:.5rem'>" +
-      "<strong>" + esc(booking.hotel_name) + "</strong>" +
+      // The hotel name links to its page, so a booking is a way back into the
+      // catalogue rather than a dead end.
+      '<a class="booking__hotel" href="#/hotels/' + booking.hotel + '">' +
+      esc(booking.hotel_name) + "</a>" +
       '<span class="pill ' + (STATUS_PILL[booking.status] || "") + '">' + esc(booking.status) + "</span>" +
       "</div>" +
       '<div class="dates">' + prettyDate(booking.check_in) + " → " + prettyDate(booking.check_out) +
