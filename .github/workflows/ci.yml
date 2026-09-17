@@ -82,7 +82,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build the image
         run: docker build -t hotel-booking-api .
-      - name: Boot the stack and probe the health endpoint
+      - name: Boot the stack in production mode and probe it
+        # Run the image as production does. With DEBUG on, a missing static
+        # manifest goes unnoticed: the health endpoint and the JSON API render no
+        # templates, so they stay green while every HTML page returns 500.
+        env:
+          DEBUG: "False"
+          SECURE_SSL_REDIRECT: "False"
+          DJANGO_SECRET_KEY: ci-only-secret-key-long-enough-to-satisfy-the-deploy-check
         run: |
           # Diagnostics must run on every failure path. The step executes under
           # `bash -e`, so a failing `compose up` aborts immediately and anything
@@ -106,6 +113,21 @@ jobs:
           for _ in $(seq 1 40); do
             if curl -fsS http://localhost:8000/api/v1/health/; then
               echo "health check passed"
+              # Template-rendered pages go through {% static %} and therefore the
+              # manifest, so they are what actually proves the image is sound.
+              for page in / /admin/login/; do
+                if ! curl -fsS -o /dev/null "http://localhost:8000${page}"; then
+                  echo "${page} did not return 200"
+                  dump
+                  exit 1
+                fi
+              done
+              if ! curl -fsS http://localhost:8000/ | grep -Eq 'css/app\.[0-9a-f]{12}\.css'; then
+                echo "/ does not reference a hashed stylesheet"
+                dump
+                exit 1
+              fi
+              echo "pages render with hashed static assets"
               docker compose down -v
               exit 0
             fi

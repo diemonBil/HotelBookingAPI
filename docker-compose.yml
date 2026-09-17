@@ -26,6 +26,8 @@ services:
     build: .
     environment:
       DEBUG: ${DEBUG:-True}
+      # Only consulted when DEBUG is off; CI turns it off to probe over plain HTTP.
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-True}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-development-key-not-for-production}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
       DATABASE_URL: postgres://${POSTGRES_USER:-hotel}:${POSTGRES_PASSWORD:-hotel}@db:5432/${POSTGRES_DB:-hotel_booking}
