@@ -82,7 +82,7 @@
     return '<div class="grid">' + items.join("") + "</div>";
   }
 
-  function empty(mark, title, hint) {
+  function empty(mark, title, hint, action) {
     return (
       '<div class="empty"><div class="empty__mark">' +
       mark +
@@ -90,7 +90,13 @@
       esc(title) +
       "</h3><p>" +
       esc(hint || "") +
-      "</p></div>"
+      "</p>" +
+      (action
+        ? '<a class="btn btn--primary" href="' + esc(action.href) + '" style="margin-top:.75rem">' +
+          esc(action.label) +
+          "</a>"
+        : "") +
+      "</div>"
     );
   }
 
@@ -492,7 +498,12 @@
     Api.bookings()
       .then(function (page) {
         if (!page.results.length) {
-          list.innerHTML = empty("🧳", "No bookings yet", "Find a stay and reserve a room.");
+          list.innerHTML = empty(
+            "🧳",
+            "No bookings yet",
+            "Bookings you make show up here — you only ever see your own.",
+            { href: "#/", label: "Browse stays" }
+          );
           return;
         }
         list.innerHTML = '<div class="stack">' + page.results.map(bookingCard).join("") + "</div>";
@@ -611,11 +622,22 @@
       (isRegister
         ? '<p class="muted small" style="margin:0">Passwords go through Django\'s validators, so ' +
           "short or common ones are rejected.</p>"
-        : '<p class="muted small" style="margin:0">Demo accounts: <code>guest1</code> / ' +
-          "<code>DemoPassw0rd!42</code></p>") +
+        : '<button class="btn btn--ghost btn--block" type="button" id="usedemo">' +
+          "Use the demo account</button>" +
+          '<p class="muted small" style="margin:0">Signs you in as <code>guest1</code>. A demo ' +
+          "guest can book rooms, pay for and cancel bookings, and review hotels — and sees only " +
+          "their own bookings. Two guests are seeded (<code>guest1</code>, <code>guest2</code>), " +
+          "password <code>DemoPassw0rd!42</code>.</p>") +
       "</form></section>";
 
     var element = document.getElementById("authform");
+    var demo = document.getElementById("usedemo");
+    if (demo) {
+      demo.addEventListener("click", function () {
+        element.querySelector('[name="username"]').value = "guest1";
+        element.querySelector('[name="password"]').value = "DemoPassw0rd!42";
+      });
+    }
     element.addEventListener("submit", function (event) {
       event.preventDefault();
       var values = form("authform");

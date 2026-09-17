@@ -75,6 +75,19 @@ body {
   background: var(--surface-sunk);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* Pin the footer to the bottom on short pages: the main column grows to fill
+     whatever height the header and footer leave over. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#view {
+  flex: 1 0 auto;
+}
+
+.footer {
+  flex-shrink: 0;
 }
 
 h1, h2, h3 {
